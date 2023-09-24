@@ -4,11 +4,16 @@ import az.company.mspayment.client.CountryClient;
 import az.company.mspayment.entity.Payment;
 import az.company.mspayment.exception.NotFoundException;
 import az.company.mspayment.mapper.PaymentMapper;
+import az.company.mspayment.model.request.PaymentCriteria;
 import az.company.mspayment.model.request.PaymentRequest;
+import az.company.mspayment.model.response.PageablePaymentResponse;
 import az.company.mspayment.model.response.PaymentResponse;
 import az.company.mspayment.repository.PaymentRepository;
+import az.company.mspayment.service.specification.PaymentSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +23,7 @@ import static az.company.mspayment.mapper.PaymentMapper.mapEntityToResponse;
 import static az.company.mspayment.mapper.PaymentMapper.mapRequestToEntity;
 import static az.company.mspayment.model.constant.ExceptionConstants.COUNTRY_NOT_FOUND_CODE;
 import static az.company.mspayment.model.constant.ExceptionConstants.COUNTRY_NOT_FOUND_MESSAGE;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 
 @Slf4j
@@ -43,10 +49,26 @@ public class PaymentService {
         log.info("savePayment.success");
     }
 
-    public List<PaymentResponse> getAllPayments() {
-        return paymentRepository.findAll()
+    public PageablePaymentResponse getAllPayments(int page, int count, PaymentCriteria paymentCriteria) {
+        log.info("getAllPayments.started");
+
+        var pageable = PageRequest.of(page, count, Sort.by(DESC, "id"));
+
+        var pageablePayments = paymentRepository.findAll(
+                new PaymentSpecification(paymentCriteria), pageable);
+
+        var payments = pageablePayments.getContent()
                 .stream()
                 .map(PaymentMapper::mapEntityToResponse).collect(Collectors.toList());
+
+        log.info("getAllPayments.success");
+
+        return PageablePaymentResponse.builder()
+                .payments(payments)
+                .hasNextPage(pageablePayments.hasNext())
+                .totalElements(pageablePayments.getTotalElements())
+                .totalPages(pageablePayments.getTotalPages())
+                .build();
     }
 
     public PaymentResponse getPaymentById(Long id) {

@@ -11,5 +11,5 @@ import java.util.List;
 public interface CountryClient {
 
     @GetMapping("/api/countries")
-    List<CountryDto> getAllAvailableCountries(@RequestParam String currency);
+    List<CountryDto> getAllAvailableCountries(@RequestParam("currency") String currency);
 }

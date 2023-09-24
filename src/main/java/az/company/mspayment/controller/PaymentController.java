@@ -1,12 +1,14 @@
 package az.company.mspayment.controller;
 
+import az.company.mspayment.model.request.PaymentCriteria;
 import az.company.mspayment.model.request.PaymentRequest;
+import az.company.mspayment.model.response.PageablePaymentResponse;
 import az.company.mspayment.model.response.PaymentResponse;
 import az.company.mspayment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.validation.Valid;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -19,13 +21,16 @@ public class PaymentController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public void savePayment(@RequestBody PaymentRequest request) {
+    public void savePayment(@Valid @RequestBody PaymentRequest request) {
         paymentService.savePayment(request);
     }
 
     @GetMapping
-    public List<PaymentResponse> getAllPayments() {
-        return paymentService.getAllPayments();
+    public PageablePaymentResponse getAllPayments(@RequestParam int page,
+                                                  @RequestParam int count,
+                                                  PaymentCriteria paymentCriteria) {
+        System.out.println(paymentService.getAllPayments(page, count, paymentCriteria));
+        return paymentService.getAllPayments(page, count, paymentCriteria);
     }
 
     @GetMapping("/{id}")
